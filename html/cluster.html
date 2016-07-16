@@ -18,7 +18,7 @@
         -webkit-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
         -moz-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
         box-shadow: rgba(64, 64, 64, 0.1) 0 2px 5px;
-        width: 600px;
+        width: 800px;
       }
       #map {
         width: 800px;
@@ -29,61 +29,71 @@
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtFesU3YGjDzI6lWTW2LIP1n1MeVTFLsM"></script>
     <script type="text/javascript" src="https://googlemaps.github.io/js-marker-clusterer/src/markerclusterer.js"></script>
+
+    <!-- 105年缺額表 -->
     <script type="text/javascript" src="../targets.json"></script>
+    <!-- 台南市政府開放資料 - 學校座標資料 -->
     <script type="text/javascript" src="../schools.json"></script>
 
     <script type="text/javascript">
     $( document ).ready(function() {
-		refresh(t[0]);
+        refresh(t[0]);
 
-		$("#target").change(function() {
-			var j = parseInt($(this).val());
-			refresh(t[j]);
-		});
+        $("#target").change(function() {
+            var j = parseInt($(this).val());
+            refresh(t[j]);
+        });
 
-		function refresh(targets) {
-			var map = new google.maps.Map(document.getElementById('map'), {
-				zoom: 7,
-				center: new google.maps.LatLng(22.984995, 120.200965),
-				mapTypeId: google.maps.MapTypeId.ROADMAP
-			});
+        // 重新 mark 地圖
+        function refresh(targets) {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 7,
+                center: new google.maps.LatLng(22.984995, 120.200965),
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            });
 
-			var markers = [];
+            var markers = [];
 
-			$.each(targets, function(sid, count) {
-				sid = sid.replace(/\D/g, '');
-				if (schools.hasOwnProperty(sid)) {
-					for (var j = 0 ; j < parseInt(count); j++) {
-						var marker = new google.maps.Marker({
-							position: new google.maps.LatLng(schools[sid]['LAT'], schools[sid]['LNG']), 
-							title: schools[sid]['NAME']
-						});
-						markers.push(marker);
-					}
-				}
-				else {
-					console.log(sid)
-				}
-			});
+            $.each(targets, function(sid, count) {
+                // 去除分校代碼 '114678-A' => '114678'
+                sid = sid.replace(/\D/g, '');
 
-			var markerCluster = new MarkerClusterer(map, markers);
-		}
+                // 使用學校代碼「查詢學校基本資料」
+                if (schools.hasOwnProperty(sid)) {
+                    // 同一學校多個缺額
+                    for (var j = 0 ; j < parseInt(count); j++) {
+                        // 座標: LAT, LNG
+                        // 校名: NAME
+                        var marker = new google.maps.Marker({
+                            position: new google.maps.LatLng(schools[sid]['LAT'], schools[sid]['LNG']), 
+                            title: schools[sid]['NAME']
+                        });
+                        markers.push(marker);
+                    }
+                }
+                else { // 找不到學校
+                    console.log(sid)
+                }
+            });
+
+            var markerCluster = new MarkerClusterer(map, markers);
+        }
     });
     </script>
   </head>
 
   <body>
     <h3>台南市105學年度國小教師甄選各校缺額分佈情形</h3>
-	<select id="target">
-		<option value="0">普通</option>
-		<option value="1">資訊</option>
-		<option value="2">音樂</option>
-		<option value="3">美術</option>
-		<option value="4">體育</option>
-		<option value="5">英語</option>
-		<option value="6">專輔</option>
-		<option value="7">生態</option>
-	</select>
+    <select id="target">
+        <option value="0">普通</option>
+        <option value="1">資訊</option>
+        <option value="2">音樂</option>
+        <option value="3">美術</option>
+        <option value="4">體育</option>
+        <option value="5">英語</option>
+        <option value="6">專輔</option>
+        <option value="7">生態</option>
+    </select>
     <div id="map-container"><div id="map"></div></div>
   </body>
 </html>
