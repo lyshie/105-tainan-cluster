@@ -18,11 +18,17 @@
         -webkit-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
         -moz-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
         box-shadow: rgba(64, 64, 64, 0.1) 0 2px 5px;
-        width: 800px;
+        position: relative;
+        padding-bottom: 75%; // This is the aspect ratio
+        height: 0;
+        overflow: hidden;
       }
       #map {
-        width: 800px;
-        height: 600px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
       }
     </style>
 
@@ -94,6 +100,13 @@
         <option value="6">專輔</option>
         <option value="7">生態</option>
     </select>
+    <div>
+        <ul>
+            <li><a href="http://qualify.tn.edu.tw/trexamps/view.aspx?id=20" target="_blank">台南市105學年度市立國民小學暨幼兒園教師聯合甄選之正式教師各校缺額一覽表</a></li>
+            <li><a href="http://data.tainan.gov.tw/dataset/school-queries" target="_blank">台南市各級學校查詢 - 資料集 - 臺南市政府資料開放平台</a></li>
+        </a>
+        </ul>
+    </div>
     <div id="map-container"><div id="map"></div></div>
   </body>
 </html>
