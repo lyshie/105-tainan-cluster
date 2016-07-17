@@ -103,3 +103,7 @@ var t = {
 <script type="text/javascript" src="../schools.json"></script>
 ```
 使用 [Google Maps API](https://developers.google.com/maps/) 與 [Marker Clusterer](https://github.com/googlemaps/js-marker-clusterer) 繪製地圖。
+
+## 5. 補充
+資料來源：[臺南市政府資料開放平台](http://data.tainan.gov.tw/specification)
+
