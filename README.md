@@ -90,6 +90,8 @@ var t = {
 ## 3. 取得學校座標資料
 透過「[台南市各級學校查詢 - 資料集 - 臺南市政府資料開放平台](http://data.tainan.gov.tw/dataset/school-queries)」，下載 JSON 檔案。
 因為該資料是 Array 型式，不方便查詢。所以透過簡單程式轉換為 Hash (Associative Array)，並簡化資料量。
+
+部份資料錯誤，需自行更正(如：「東區大同國小」與「善化區大同國小」座標皆相同)。
 ```
 # wget -q -O - http://odata.tn.edu.tw/schoolapi/api/getdata | ./json_conv.pl > schools.json
 ```
