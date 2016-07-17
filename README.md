@@ -49,6 +49,8 @@
 [^0-9\-A-Z]+: 學校代碼
 [0-9]*?([0-9])$: 取得最後一個數字，所以前面用「[0-9]*?」的 non-greedy 比對，最後擷取「([0-9])$」一個數字
 ```
+
+範例：
 ```
 # [前處理] | perl -pe 's|[^0-9\-A-Z]+[0-9]*?([0-9])$| \1|'
 213624 1
@@ -56,3 +58,48 @@
 213626 5
 213627 3
 ```
+
+### c. 過濾缺額數量為 0 的學校
+範例：
+```
+# [前處理] | grep -vP ' 0$'
+213624 1
+213626 5
+213627 3
+```
+
+### d. 轉為 JSON 格式 (非正規)
+範例：
+```
+# [前處理] | awk '{print "\""$1"\" : "$2","}'
+"213624" : 1,
+"213641" : 3,
+"213626" : 5,
+```
+
+完整 JSON 格式：
+```json
+var t = {
+"213624" : 1,
+"213641" : 3,
+"213626" : 5,
+"" : 0
+};
+```
+
+## 3. 取得學校座標資料
+透過「[台南市各級學校查詢 - 資料集 - 臺南市政府資料開放平台](http://data.tainan.gov.tw/dataset/school-queries)」，下載 JSON 檔案。
+因為該資料是 Array 型式，不方便查詢。所以透過簡單程式轉換為 Hash (Associative Array)，並簡化資料量。
+```
+# wget -q -O - http://odata.tn.edu.tw/schoolapi/api/getdata | ./json_conv.pl > schools.json
+```
+
+## 4. 繪製 Marker Cluster 地圖
+引用前處理過的兩份 JSON 資料，「缺額表」與「學校資訊」。
+```html
+<!-- 105年缺額表 -->
+<script type="text/javascript" src="../targets.json"></script>
+<!-- 台南市政府開放資料 - 學校座標資料 -->
+<script type="text/javascript" src="../schools.json"></script>
+```
+使用 [Google Maps API](https://developers.google.com/maps/) 與 [Marker Clusterer](https://github.com/googlemaps/js-marker-clusterer) 繪製地圖。
