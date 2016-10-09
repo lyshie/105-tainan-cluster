@@ -1,5 +1,7 @@
 # 105-tainan-cluster
 [台南市105學年度國小教師甄選各校缺額分佈情形](https://lyshie.github.io/105-tainan-cluster/html/cluster.html)
+[台南市105學年度國小新生報到人數](https://lyshie.github.io/105-tainan-cluster/html/105new.html)
+[疊加情形](https://lyshie.github.io/105-tainan-cluster/html/105cluster.html)
 
 ## 1. 取得缺額表 PDF 檔案，並轉換格式
 ### a. 使用 pdf2text [(PDFMiner: Python PDF parser and analyzer)](http://www.unixuser.org/~euske/python/pdfminer/)
