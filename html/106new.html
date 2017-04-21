@@ -43,7 +43,7 @@
         var n2 = []; // 106
         var newbie2 = [];
 
-        $.getJSON('http://cors-proxy.htmldriven.com/?url=http://odata.tn.edu.tw/ebookapi/api/getOdataSIS').done(function(data) {
+        $.getJSON('//cors-proxy.htmldriven.com/?url=http://odata.tn.edu.tw/ebookapi/api/getOdataSIS').done(function(data) {
             if (data['success']) {
                 newbie2 = JSON.parse(data['body']); // 106
                 refresh_pop();
