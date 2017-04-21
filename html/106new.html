@@ -1,0 +1,159 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>台南市106學年度國小新生報到人數</title>
+    <style >
+      body {
+        margin: 0;
+        padding: 10px 20px 20px;
+        font-family: Arial;
+        font-size: 16px;
+      }
+      #map-container {
+        padding: 6px;
+        border-width: 1px;
+        border-style: solid;
+        border-color: #ccc #ccc #999 #ccc;
+        -webkit-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+        -moz-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+        box-shadow: rgba(64, 64, 64, 0.1) 0 2px 5px;
+        width: 800px;
+      }
+      #map {
+        width: 800px;
+        height: 600px;
+      }
+    </style>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtFesU3YGjDzI6lWTW2LIP1n1MeVTFLsM"></script>
+    <script type="text/javascript" src="https://googlemaps.github.io/js-marker-clusterer/src/markerclusterer.js"></script>
+
+    <!-- 台南市政府開放資料 - 國小新生報到人數 -->
+    <!-- http://data.tainan.gov.tw/dataset/ele-new-students -->
+    <script type="text/javascript" src="http://www.chps.tn.edu.tw/106new.json"></script>
+    <!-- 台南市政府開放資料 - 學校座標資料 -->
+    <!-- http://data.tainan.gov.tw/dataset/school-codes -->
+    <script type="text/javascript" src="../schools.json"></script>
+
+    <script type="text/javascript">
+    $( document ).ready(function() {
+        refresh_pop();
+
+        function match_school(name) { // too dirty, not elegant
+            var a;
+            var b;
+            var c;
+
+            if (name.indexOf('分校') > 0) {
+                a = b = c = new RegExp(name, 'g');
+            }
+            else {
+                if (name == '南大附小') {
+                    name = '國立臺南大學附小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '南科實小') {
+                    name = '國立南科國際實驗小學';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '慈濟') {
+                    name = '慈濟學校財團法人台南市私立慈濟高級中學附設國民小學部';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '大同' || name == '復興' || name == '勝利') {
+                    name = '市立東區' + name + '國小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '新興') {
+                    name = '市立南區新興國小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '成功') {
+                    name = '市立中西區成功國小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '南興') {
+                    name = '市立安南區南興國小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else {
+                    if (name.length == 4) {
+                        name = name.substring(0, 2) + '區' + name.substring(2);
+                    }
+
+                    a = new RegExp('市立' + name + '國小$', 'g');
+                    b = new RegExp('市立' + name + '國民小學$', 'g');
+                    c = new RegExp('私立' + name + '小學$', 'g');
+                }
+            }
+
+            var result = null;
+
+            $.each(schools, function(i, s) {
+                if (!s['LAT'] || !s['LNG']) {
+                    // skip
+                }
+                else if (s['NAME'].match(a) || s['NAME'].match(b) || s['NAME'].match(c)) {
+                    // match and exit
+                    result = i;
+                }
+            });
+
+            return result;
+        }
+
+        // 重新繪製地圖
+        function refresh_pop() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 10,
+                center: new google.maps.LatLng(22.984995, 120.200965),
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+                //mapTypeId: google.maps.MapTypeId.TERRAIN
+            });
+
+            $.each(newbie, function(i, n) {
+                // 使用學校名稱「縮寫」查詢學校代碼
+                var index = match_school(n['school']);
+                // 新生報到人數
+                var population = parseInt(n['num2']);
+
+                // 有查到學校代碼
+                if (index != null) {
+                    var circle = new google.maps.Circle({
+                        strokeColor: '#FF0000',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '#FF0000',
+                        fillOpacity: 0.35,
+                        map: map,
+                        center: { lat: parseFloat(schools[index]['LAT']),
+                                  lng: parseFloat(schools[index]['LNG'])
+                                },
+                        radius: Math.sqrt(population) * 50,
+                        title: schools[index]['NAME'] + ' ' + population
+                    });
+
+                    google.maps.event.addListener(circle, 'mouseover', function() {
+                         this.getMap().getDiv().setAttribute('title',this.get('title'));
+                    });
+
+                    google.maps.event.addListener(circle, 'mouseout', function() {
+                         this.getMap().getDiv().removeAttribute('title');
+                    });
+                }
+                else { // 找不到學校
+                    console.log(n['school'] + ' X ');
+                }
+            });
+        }
+    });
+    </script>
+  </head>
+
+  <body>
+    <h3>台南市106學年度國小新生報到人數</h3>
+    <div id="map-container"><div id="map"></div></div>
+  </body>
+</html>
