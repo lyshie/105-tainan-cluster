@@ -32,6 +32,7 @@
 
     <!-- 台南市政府開放資料 - 國小新生報到人數 -->
     <!-- http://data.tainan.gov.tw/dataset/ele-new-students -->
+    <script type="text/javascript" src="//www.chps.tn.edu.tw/106new.json"></script>
     <script type="text/javascript" src="../105new.json"></script>
     <!-- 台南市政府開放資料 - 學校座標資料 -->
     <!-- http://data.tainan.gov.tw/dataset/school-codes -->
@@ -41,23 +42,17 @@
     $( document ).ready(function() {
         var n1 = []; // 105
         var n2 = []; // 106
-        var newbie2 = [];
 
-        $.getJSON('//cors-proxy.htmldriven.com/?url=http://odata.tn.edu.tw/ebookapi/api/getOdataSIS').done(function(data) {
-            if (data['success']) {
-                newbie2 = JSON.parse(data['body']); // 106
-                refresh_pop();
+        refresh_pop();
 
-                $.each(newbie, function(i, n) { // 105
-                    n1[n['school']] = n['num2'];
-                });
-
-                $("table#rawdata tbody").empty();
-                for (p in n1) {
-                    $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td>' + (n2[p] ? n2[p] : '') + '</td></tr>');
-                }
-            }
+        $.each(newbie, function(i, n) { // 105
+            n1[n['school']] = n['num2'];
         });
+
+        $("table#rawdata tbody").empty();
+        for (p in n1) {
+            $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td>' + (n2[p] ? n2[p] : '') + '</td></tr>');
+        }
 
         function match_school(name) { // too dirty, not elegant
             var a;
