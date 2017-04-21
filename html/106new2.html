@@ -32,32 +32,14 @@
 
     <!-- 台南市政府開放資料 - 國小新生報到人數 -->
     <!-- http://data.tainan.gov.tw/dataset/ele-new-students -->
-    <script type="text/javascript" src="../105new.json"></script>
+    <script type="text/javascript" src="//www.chps.tn.edu.tw/106new.json"></script>
     <!-- 台南市政府開放資料 - 學校座標資料 -->
     <!-- http://data.tainan.gov.tw/dataset/school-codes -->
     <script type="text/javascript" src="../schools.json"></script>
 
     <script type="text/javascript">
     $( document ).ready(function() {
-        var n1 = []; // 105
-        var n2 = []; // 106
-        var newbie2 = [];
-
-        $.getJSON('http://cors-proxy.htmldriven.com/?url=http://odata.tn.edu.tw/ebookapi/api/getOdataSIS').done(function(data) {
-            if (data['success']) {
-                newbie2 = JSON.parse(data['body']); // 106
-                refresh_pop();
-
-                $.each(newbie, function(i, n) { // 105
-                    n1[n['school']] = n['num2'];
-                });
-
-                $("table#rawdata tbody").empty();
-                for (p in n1) {
-                    $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td>' + (n2[p] ? n2[p] : '') + '</td></tr>');
-                }
-            }
-        });
+        refresh_pop();
 
         function match_school(name) { // too dirty, not elegant
             var a;
@@ -131,13 +113,14 @@
                 //mapTypeId: google.maps.MapTypeId.TERRAIN
             });
 
-            $.each(newbie2, function(i, n) {
+            $("table#rawdata tbody").empty();
+            $.each(newbie, function(i, n) {
                 // 使用學校名稱「縮寫」查詢學校代碼
                 var index = match_school(n['school']);
                 // 新生報到人數
                 var population = parseInt(n['num2']);
 
-                n2[n['school']] = n['num2'];
+                $("table#rawdata tbody").append('<tr><td>' + n['school'] + "</td><td>" + n['num2'] + '</td></tr>');
 
                 // 有查到學校代碼
                 if (index != null) {
@@ -180,11 +163,10 @@
         <thead>
             <tr>
                 <th>學校</th>
-                <th>105報到人數</th>
-                <th>106報到人數</th>
+                <th>報到人數</th>
             </tr>
         </thead>
-        <tbody style="text-align: right;">
+        <tbody>
         </tbody>
     </table>
   </body>
