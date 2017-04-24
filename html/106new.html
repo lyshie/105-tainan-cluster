@@ -51,7 +51,15 @@
 
         $("table#rawdata tbody").empty();
         for (p in n1) {
-            $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td>' + (n2[p] ? n2[p] : '') + '</td></tr>');
+            if (parseInt(n1[p]) == parseInt(n2[p])) {
+                $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td>' + (n2[p] ? n2[p] : '') + '</td></tr>');
+            }
+            else if (parseInt(n1[p]) < parseInt(n2[p])) {
+                $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td style="color:red;">' + (n2[p] ? n2[p] : '') + '</td></tr>');
+            }
+            else {
+                $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td style="color:green;">' + (n2[p] ? n2[p] : '') + '</td></tr>');
+            }
         }
 
         function match_school(name) { // too dirty, not elegant
