@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>台南市106學年度國小新生報到人數</title>
+    <title>台南市107學年度國小新生報到人數</title>
     <style >
       body {
         margin: 0;
@@ -32,7 +32,7 @@
 
     <!-- 台南市政府開放資料 - 國小新生報到人數 -->
     <!-- http://data.tainan.gov.tw/dataset/ele-new-students -->
-    <script type="text/javascript" src="//www.chps.tn.edu.tw/106new.json"></script>
+    <script type="text/javascript" src="//www.chps.tn.edu.tw/107new.json"></script>
     <!-- 台南市政府開放資料 - 學校座標資料 -->
     <!-- http://data.tainan.gov.tw/dataset/school-codes -->
     <script type="text/javascript" src="../schools.json"></script>
@@ -114,7 +114,7 @@
             });
 
             $("table#rawdata tbody").empty();
-            $.each(newbie2, function(i, n) {
+            $.each(newbie, function(i, n) {
                 // 使用學校名稱「縮寫」查詢學校代碼
                 var index = match_school(n['school']);
                 // 新生報到人數
@@ -156,7 +156,7 @@
   </head>
 
   <body>
-    <h3>台南市106學年度國小新生報到人數</h3>
+    <h3>台南市107學年度國小新生報到人數</h3>
     <h4>參考來源：<a href="http://data.tainan.gov.tw/dataset/ele-new-students">國小新生報到人數 - 資料集 - 臺南市政府資料開放平台</a></h4>
     <div id="map-container"><div id="map"></div></div>
     <table id="rawdata">

@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>台南市106學年度國小新生報到人數</title>
+    <title>台南市107學年度國小新生報到人數</title>
     <style >
       body {
         margin: 0;
@@ -32,14 +32,35 @@
 
     <!-- 台南市政府開放資料 - 國小新生報到人數 -->
     <!-- http://data.tainan.gov.tw/dataset/ele-new-students -->
-    <script type="text/javascript" src="//www.chps.tn.edu.tw/106new.json"></script>
+    <script type="text/javascript" src="//www.chps.tn.edu.tw/107new.json"></script>
+    <script type="text/javascript" src="../105new.json"></script>
     <!-- 台南市政府開放資料 - 學校座標資料 -->
     <!-- http://data.tainan.gov.tw/dataset/school-codes -->
     <script type="text/javascript" src="../schools.json"></script>
 
     <script type="text/javascript">
     $( document ).ready(function() {
+        var n1 = []; // 105
+        var n2 = []; // 107
+
         refresh_pop();
+
+        $.each(newbie, function(i, n) { // 105
+            n1[n['school']] = n['num2'];
+        });
+
+        $("table#rawdata tbody").empty();
+        for (p in n1) {
+            if (parseInt(n1[p]) == parseInt(n2[p])) {
+                $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td>' + (n2[p] ? n2[p] : '') + '</td></tr>');
+            }
+            else if (parseInt(n1[p]) < parseInt(n2[p])) {
+                $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td style="color:red;">' + (n2[p] ? n2[p] : '') + '</td></tr>');
+            }
+            else {
+                $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td style="color:green;">' + (n2[p] ? n2[p] : '') + '</td></tr>');
+            }
+        }
 
         function match_school(name) { // too dirty, not elegant
             var a;
@@ -113,14 +134,17 @@
                 //mapTypeId: google.maps.MapTypeId.TERRAIN
             });
 
-            $("table#rawdata tbody").empty();
             $.each(newbie2, function(i, n) {
                 // 使用學校名稱「縮寫」查詢學校代碼
+                if (n['school'] == '口埤') {
+                    n['school'] = '口碑';
+                }
+
                 var index = match_school(n['school']);
                 // 新生報到人數
                 var population = parseInt(n['num2']);
 
-                $("table#rawdata tbody").append('<tr><td>' + n['school'] + "</td><td>" + n['num2'] + '</td></tr>');
+                n2[n['school']] = n['num2'];
 
                 // 有查到學校代碼
                 if (index != null) {
@@ -156,17 +180,18 @@
   </head>
 
   <body>
-    <h3>台南市106學年度國小新生報到人數</h3>
+    <h3>台南市107學年度國小新生報到人數</h3>
     <h4>參考來源：<a href="http://data.tainan.gov.tw/dataset/ele-new-students">國小新生報到人數 - 資料集 - 臺南市政府資料開放平台</a></h4>
     <div id="map-container"><div id="map"></div></div>
     <table id="rawdata">
         <thead>
             <tr>
                 <th>學校</th>
-                <th>報到人數</th>
+                <th>105報到人數</th>
+                <th>107報到人數</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody style="text-align: right;">
         </tbody>
     </table>
   </body>
