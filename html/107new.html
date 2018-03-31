@@ -30,6 +30,11 @@
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtFesU3YGjDzI6lWTW2LIP1n1MeVTFLsM"></script>
     <script type="text/javascript" src="https://googlemaps.github.io/js-marker-clusterer/src/markerclusterer.js"></script>
 
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css" rel="stylesheet">
+
     <!-- 台南市政府開放資料 - 國小新生報到人數 -->
     <!-- http://data.tainan.gov.tw/dataset/ele-new-students -->
     <script type="text/javascript" src="//www.chps.tn.edu.tw/107new.json"></script>
@@ -42,25 +47,13 @@
     $( document ).ready(function() {
         var n1 = []; // 105
         var n2 = []; // 107
+        var colors = [];
 
-        refresh_pop();
-
-        $.each(newbie2, function(i, n) { // 105
+        $.each(newbie, function(i, n) { // 105
             n1[n['school']] = n['num2'];
         });
 
-        $("table#rawdata tbody").empty();
-        for (p in n1) {
-            if (parseInt(n1[p]) == parseInt(n2[p])) {
-                $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td>' + (n2[p] ? n2[p] : '') + '</td></tr>');
-            }
-            else if (parseInt(n1[p]) < parseInt(n2[p])) {
-                $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td style="color:red;">' + (n2[p] ? n2[p] : '') + '</td></tr>');
-            }
-            else {
-                $("table#rawdata tbody").append('<tr><td>' + p + '</td><td>' + n1[p] + '</td><td style="color:green;">' + (n2[p] ? n2[p] : '') + '</td></tr>');
-            }
-        }
+        refresh_pop();
 
         function match_school(name) { // too dirty, not elegant
             var a;
@@ -134,7 +127,12 @@
                 //mapTypeId: google.maps.MapTypeId.TERRAIN
             });
 
+            $("table#rawdata tbody").empty();
+            $("table#rawdata tfoot").empty();
             $.each(newbie2, function(i, n) {
+                if (n['school'] == '') {
+                    return;
+                }
                 // 使用學校名稱「縮寫」查詢學校代碼
                 if (n['school'] == '口埤') {
                     n['school'] = '口碑';
@@ -146,13 +144,45 @@
 
                 n2[n['school']] = n['num2'];
 
+                // begin of table
+                var c1 = parseInt(n1[n['school']] ? n1[n['school']] : '0');
+                var c2 = parseInt(n2[n['school']] ? n2[n['school']] : '0');
+                var html = '<tr>';
+
+                if (c1 == c2) {
+                    colors[n['school']] = "#999999";
+                }
+                else if (c1 < c2) {
+                    colors[n['school']] = "#ff0000";
+                }
+                else {
+                    colors[n['school']] = "#009900";
+                }
+
+                html = html +
+                    '<td>' + n['school'] + '</td>' +
+                    '<td>' + c1 + '</td>' +
+                    '<td style="color:' + colors[n['school']] + ';">' + c2 + '</td>' +
+                    '<td style="color:' + colors[n['school']] + ';">' + (c2 - c1) + '</td>' +
+                    '<td style="color:' + colors[n['school']] + ';">' + Math.round(100 * (c2 - c1) / c1) + '</td>';
+
+                html = html + '</tr>';
+
+                if (n['school'] == '總計') {
+                    $("table#rawdata tfoot").append(html);
+                }
+                else {
+                    $("table#rawdata tbody").append(html);
+                }
+                // end of table
+
                 // 有查到學校代碼
                 if (index != null) {
                     var circle = new google.maps.Circle({
-                        strokeColor: '#FF0000',
+                        strokeColor: colors[n['school']],
                         strokeOpacity: 0.8,
                         strokeWeight: 2,
-                        fillColor: '#FF0000',
+                        fillColor: colors[n['school']],
                         fillOpacity: 0.35,
                         map: map,
                         center: { lat: parseFloat(schools[index]['LAT']),
@@ -174,25 +204,40 @@
                     console.log(n['school'] + ' X ');
                 }
             });
+
+            // data table for sorting
+            $('#rawdata').DataTable({
+                "paging": false,
+                "info": false,
+                "language": {
+                    search: '在表格中搜尋：'
+                }
+            });
         }
     });
     </script>
   </head>
 
   <body>
-    <h3>台南市107學年度國小新生報到人數</h3>
-    <h4>參考來源：<a href="http://data.tainan.gov.tw/dataset/ele-new-students">國小新生報到人數 - 資料集 - 臺南市政府資料開放平台</a></h4>
-    <div id="map-container"><div id="map"></div></div>
-    <table id="rawdata">
-        <thead>
-            <tr>
-                <th>學校</th>
-                <th>105報到人數</th>
-                <th>107報到人數</th>
-            </tr>
-        </thead>
-        <tbody style="text-align: right;">
-        </tbody>
-    </table>
+    <div class="container">
+        <h3>台南市107學年度國小新生報到人數</h3>
+        <h4>參考來源：<a href="http://data.tainan.gov.tw/dataset/ele-new-students">國小新生報到人數 - 資料集 - 臺南市政府資料開放平台</a></h4>
+        <div id="map-container"><div id="map"></div></div>
+        <table id="rawdata" class="display-2 table table-hover table-striped table-bordered" style="font-size:1.2em;">
+            <thead>
+                <tr>
+                    <th>學校</th>
+                    <th>105報到人數</th>
+                    <th>107報到人數</th>
+                    <th>人數差異</th>
+                    <th>成長幅度</th>
+                </tr>
+            </thead>
+            <tbody class="text-right">
+            </tbody>
+            <tfoot class="text-right">
+            </tbody>
+        </table>
+    </div>
   </body>
 </html>
