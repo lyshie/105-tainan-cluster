@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>台南市公有停車場</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0px;
+            font-family: Arial;
+            font-size: 16px;
+        }
+
+        #map-container {
+            padding: 0px;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #mymap {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
+
+
+
+    <!-- 台南市政府開放資料 -->
+
+    <script type="text/javascript">
+        function initMap() {
+            var map = L.map('mymap');
+            map.locate({
+                setView: true,
+                maxZoom: 16
+            });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+            }).addTo(map);
+
+            return map;
+        }
+
+        function addMarker(map, coordinates, payload) {
+            var marker = L.marker(coordinates).addTo(map);
+
+            marker.bindPopup(
+                '<a href="http://maps.google.com/?cbll=' + coordinates[0] + ',' + coordinates[1] + '&cbp=12,20.09,,0,5&layer=c" target="_blank">' + payload['停車場名稱'] + '</a>' +
+                "<br>" + '大' + '<b style="color:blue">' + (payload['一般大型車'] || 0) + '</b>' + '&nbsp;' +
+                '小' + '<b style="color:blue">' + (payload['一般小型車'] || 0) + '</b>' + '&nbsp;' +
+                '綠' + '<b style="color:blue">' + (payload['綠能小型車'] || 0) + '</b>' + '&nbsp;' +
+                '機' + '<b style="color:blue">' + (payload['一般機車'] || 0) + '</b>' + '&nbsp;' +
+                ""
+            ).openPopup();
+
+            return map;
+        }
+
+        function addCircle(map, coordinates, payload) {
+            var circle = L.circle(coordinates, {
+                color: 'red',
+                radius: '10'
+            }).addTo(map);
+
+            circle.bindPopup(
+                '<a href="http://maps.google.com/?cbll=' + coordinates[0] + ',' + coordinates[1] + '&cbp=12,20.09,,0,5&layer=c" target="_blank">' + payload['停車場名稱'] + '</a>' +
+                "<br>" + payload['收費費率'] + ' (' + payload['收費時間'] + ')' + '&nbsp;' +
+                "<br>" + '大' + '<b style="color:blue">' + (payload['一般大型車'] || 0) + '</b>' + '&nbsp;' +
+                '小' + '<b style="color:blue">' + (payload['一般小型車'] || 0) + '</b>' + '&nbsp;' +
+                '綠' + '<b style="color:blue">' + (payload['綠能小型車'] || 0) + '</b>' + '&nbsp;' +
+                '機' + '<b style="color:blue">' + (payload['一般機車'] || 0) + '</b>' + '&nbsp;' +
+                ""
+            ).openPopup();
+
+            return map;
+        }
+
+        $(document).ready(function() {
+            var map = initMap();
+
+            // 公有免費停車場
+            $.getJSON('https://cors.io/?' + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=1&ftype=1&exportTo=2', function(data) {
+                $.each(data, function(k, v) {
+                    //console.log(v['經緯度']);
+                    var coordinates = v['經緯度'].split('，').map(parseFloat);
+                    addMarker(map, coordinates, v);
+                });
+            });
+
+            // 公有收費停車場
+            $.getJSON('https://cors.io/?' + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=2&ftype=1&exportTo=2', function(data) {
+                $.each(data, function(k, v) {
+                    if (!v['經緯度']) {
+                        console.log(v);
+                        return;
+                    }
+                    var coordinates = v['經緯度'].split('，').map(parseFloat);
+                    addCircle(map, coordinates, v);
+                });
+            });
+
+            // 臺南市各行政區現有認養及代管空地設置停車場明細表
+            $.getJSON('https://cors.io/?' + 'https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=b1aece34-a907-40a9-8678-f17198786571&limit=500', function(data) {
+                $.each(data['result']['records'], function(k, v) {
+                    if (!v['_id']) {
+                        console.log(v);
+                        return;
+                    }
+                    var coordinates = [v['緯度'] || 0, v['經度'] || 0];
+                    addMarker(map, coordinates, v);
+                });
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div id="map-container">
+        <div id="mymap"></div>
+    </div>
+</body>
+
+</html>
