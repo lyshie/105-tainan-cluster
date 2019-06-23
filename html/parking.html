@@ -37,11 +37,13 @@
 
     <script type="text/javascript">
         function initMap() {
-            var map = L.map('mymap').fitWorld();
+            var map = L.map('mymap').setView([22.991620, 120.185030], 12);
+            /*
             map.locate({
                 setView: true,
                 maxZoom: 18
             });
+			*/
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
                 attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
@@ -50,34 +52,28 @@
             return map;
         }
 
-        function addMarker(map, coordinates, payload) {
-            var marker = L.marker(coordinates).addTo(map);
+        function addCircle(map, coordinates, params) {
+            var circle;
+            try { // 部份資料經緯度格式異常
+                circle = L.circle(coordinates, {
+                    color: params.color || 'red',
+                    radius: params.radius || '30'
+                }).addTo(map);
+            } catch (e) {
+                console.log(e);
+                return;
+            }
 
-            marker.bindPopup(
-                '<a href="http://maps.google.com/?cbll=' + coordinates[0] + ',' + coordinates[1] + '&cbp=12,20.09,,0,5&layer=c" target="_blank">' + payload['停車場名稱'] + '</a>' +
-                "<br>" + '大' + '<b style="color:blue">' + (payload['一般大型車'] || 0) + '</b>' + '&nbsp;' +
-                '小' + '<b style="color:blue">' + (payload['一般小型車'] || 0) + '</b>' + '&nbsp;' +
-                '綠' + '<b style="color:blue">' + (payload['綠能小型車'] || 0) + '</b>' + '&nbsp;' +
-                '機' + '<b style="color:blue">' + (payload['一般機車'] || 0) + '</b>' + '&nbsp;' +
-                ""
-            ).openPopup();
-
-            return map;
-        }
-
-        function addCircle(map, coordinates, payload) {
-            var circle = L.circle(coordinates, {
-                color: 'red',
-                radius: '10'
-            }).addTo(map);
+            var payload = params.payload;
 
             circle.bindPopup(
                 '<a href="http://maps.google.com/?cbll=' + coordinates[0] + ',' + coordinates[1] + '&cbp=12,20.09,,0,5&layer=c" target="_blank">' + payload['停車場名稱'] + '</a>' +
-                "<br>" + payload['收費費率'] + ' (' + payload['收費時間'] + ')' + '&nbsp;' +
-                "<br>" + '大' + '<b style="color:blue">' + (payload['一般大型車'] || 0) + '</b>' + '&nbsp;' +
-                '小' + '<b style="color:blue">' + (payload['一般小型車'] || 0) + '</b>' + '&nbsp;' +
+                "<br>" + (payload['收費費率'] || payload['收費標準(收費時間)'] || '') +
+                ' (' + (payload['收費時間'] || payload['營業時間'] || '') + ')' + '&nbsp;' +
+                "<br>" + '大' + '<b style="color:blue">' + (payload['一般大型車'] || payload['大型車'] || 0) + '</b>' + '&nbsp;' +
+                '小' + '<b style="color:blue">' + (payload['一般小型車'] || payload['小型車'] || 0) + '</b>' + '&nbsp;' +
                 '綠' + '<b style="color:blue">' + (payload['綠能小型車'] || 0) + '</b>' + '&nbsp;' +
-                '機' + '<b style="color:blue">' + (payload['一般機車'] || 0) + '</b>' + '&nbsp;' +
+                '機' + '<b style="color:blue">' + (payload['一般機車'] || payload['機車'] || 0) + '</b>' + '&nbsp;' +
                 ""
             ).openPopup();
 
@@ -87,16 +83,23 @@
         $(document).ready(function() {
             var map = initMap();
 
-            // 公有免費停車場
+            $(document).ajaxComplete(function() {
+                map.setView([22.991620, 120.185030], 12);
+            });
+
+            // 臺南市公有免費停車場
             $.getJSON('https://cors.io/?' + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=1&ftype=1&exportTo=2', function(data) {
                 $.each(data, function(k, v) {
                     //console.log(v['經緯度']);
                     var coordinates = v['經緯度'].split('，').map(parseFloat);
-                    addMarker(map, coordinates, v);
+                    addCircle(map, coordinates, {
+                        color: 'blue',
+                        payload: v
+                    });
                 });
             });
 
-            // 公有收費停車場
+            // 臺南市公有收費停車場
             $.getJSON('https://cors.io/?' + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=2&ftype=1&exportTo=2', function(data) {
                 $.each(data, function(k, v) {
                     if (!v['經緯度']) {
@@ -104,7 +107,10 @@
                         return;
                     }
                     var coordinates = v['經緯度'].split('，').map(parseFloat);
-                    addCircle(map, coordinates, v);
+                    addCircle(map, coordinates, {
+                        color: 'red',
+                        payload: v
+                    });
                 });
             });
 
@@ -116,7 +122,25 @@
                         return;
                     }
                     var coordinates = [v['緯度'] || 0, v['經度'] || 0];
-                    addMarker(map, coordinates, v);
+                    addCircle(map, coordinates, {
+                        color: 'blue',
+                        payload: v
+                    });
+                });
+            });
+
+            // 高雄市公有路外停車場
+            $.getJSON('https://cors.io/?' + 'https://data.kcg.gov.tw/api/action/datastore_search?resource_id=fe3f93da-9673-4f7b-859c-9017d793f798&limit=500', function(data) {
+                $.each(data['result']['records'], function(k, v) {
+                    if (!v['_id']) {
+                        console.log(v);
+                        return;
+                    }
+                    var coordinates = [v['座標-緯度'] || 0, v['座標-經度'] || 0];
+                    addCircle(map, coordinates, {
+                        color: 'purple',
+                        payload: v
+                    });
                 });
             });
         });
