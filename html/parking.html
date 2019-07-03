@@ -111,7 +111,9 @@
                 coordinates[0] + ',' + coordinates[1] + '&cbp=12,20.09,,0,5&layer=c" target="_blank">' +
                 (payload['stakenumber'] || '') +
                 '</a>' +
-                '<br><img class="cctv" src="' + (payload['html'] || '') + '">' +
+                '<br><a href="' + (payload['html'] || '') + '" target="_blank">' +
+                '<img class="cctv" alt="' + (payload['stakenumber'] || '') + '" src="' + (payload['html'] || '') + '">' +
+                '</a>' +
                 "", {
                     maxWidth: "auto"
                 }
