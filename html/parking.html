@@ -108,7 +108,7 @@
 
             circle.bindPopup(
                 payload['RoadName'] + '(' + payload['SurveillanceDescription'] + ')' +
-                '<br><iframe class="cctv" src="' + payload['VideoStreamURL'] + '">' + '</iframe>' +
+                '<br><iframe class="cctv" src="https://cors-anywhere.herokuapp.com/' + payload['VideoStreamURL'] + '">' + '</iframe>' +
                 "", {
                     maxWidth: "auto"
                 }
