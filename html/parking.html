@@ -107,8 +107,11 @@
             var payload = params.payload;
 
             circle.bindPopup(
-                payload['RoadName'] + '(' + payload['SurveillanceDescription'] + ')' +
-                '<br><iframe class="cctv" src="https://cors-anywhere.herokuapp.com/' + payload['VideoStreamURL'] + '">' + '</iframe>' +
+                '<a href="http://maps.google.com/?cbll=' +
+                coordinates[0] + ',' + coordinates[1] + '&cbp=12,20.09,,0,5&layer=c" target="_blank">' +
+                (payload['RoadName'] || payload['@roadsection']) + '&nbsp;' + (payload['SurveillanceDescription'] || '') +
+                '</a>' +
+                '<br><iframe class="cctv" src="' + (payload['VideoStreamURL'] || payload['@url']) + '">' + '</iframe>' +
                 "", {
                     maxWidth: "auto"
                 }
@@ -189,7 +192,19 @@
                 $.each(data['CCTVs'], function(k, v) {
                     var coordinates = [v['PositionLat'] || 0, v['PositionLon'] || 0];
                     addCCTV(map, coordinates, {
-                        color: 'brown',
+                        color: 'green',
+                        payload: v
+                    });
+                });
+            });
+
+            // CCTVs 交通部高速公路局交通資料庫(TISV, Traffic Information Service)
+            // http://tisvcloud.freeway.gov.tw/
+            $.getJSON('cctvs.json', function(data) {
+                $.each(data, function(k, v) {
+                    var coordinates = [v['@py'] || 0, v['@px'] || 0];
+                    addCCTV(map, coordinates, {
+                        color: 'green',
                         payload: v
                     });
                 });
