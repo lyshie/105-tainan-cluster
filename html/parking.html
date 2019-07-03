@@ -109,9 +109,9 @@
             circle.bindPopup(
                 '<a href="http://maps.google.com/?cbll=' +
                 coordinates[0] + ',' + coordinates[1] + '&cbp=12,20.09,,0,5&layer=c" target="_blank">' +
-                (payload['RoadName'] || payload['@roadsection']) + '&nbsp;' + (payload['SurveillanceDescription'] || '') +
+                (payload['stakenumber'] || '') +
                 '</a>' +
-                '<br><img class="cctv" src="' + (payload['VideoStreamURL'] || payload['@url']) + '">' +
+                '<br><img class="cctv" src="' + (payload['html'] || '') + '">' +
                 "", {
                     maxWidth: "auto"
                 }
@@ -186,29 +186,24 @@
                 });
             });
 
-            // CCTVs 中華民國交通部公路總局「交通資料庫」
-            // https://thbapp.thb.gov.tw/opendata/
-            $.getJSON(cors_proxy + 'http://117.56.59.157:8085/THB/Standard/CCTVs', function(data) {
-                $.each(data['CCTVs'], function(k, v) {
-                    var coordinates = [v['PositionLat'] || 0, v['PositionLon'] || 0];
-                    addCCTV(map, coordinates, {
-                        color: 'green',
-                        payload: v
-                    });
-                });
-            });
+            var cctv_json = [
+                'https://thbapp.thb.gov.tw/services/cctv/freeway', // 國道
+                'https://thbapp.thb.gov.tw/services/cctv/thb', // 省道
+                'https://thbapp.thb.gov.tw/services/cctv/county' // 縣市
+            ];
 
-            // CCTVs 交通部高速公路局交通資料庫(TISV, Traffic Information Service)
-            // http://tisvcloud.freeway.gov.tw/
-            $.getJSON('cctvs.json', function(data) {
-                $.each(data, function(k, v) {
-                    var coordinates = [v['@py'] || 0, v['@px'] || 0];
-                    addCCTV(map, coordinates, {
-                        color: 'green',
-                        payload: v
+            // CCTVs
+            for (var i = 0; i < cctv_json.length; i++) {
+                $.getJSON(cctv_json[i], function(data) {
+                    $.each(data, function(k, v) {
+                        var coordinates = [v['gisy'] || 0, v['gisx'] || 0];
+                        addCCTV(map, coordinates, {
+                            color: 'green',
+                            payload: v
+                        });
                     });
                 });
-            });
+            }
         });
     </script>
 </head>
