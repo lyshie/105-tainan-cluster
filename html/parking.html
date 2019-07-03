@@ -24,12 +24,24 @@
             width: 100%;
             height: 100%;
         }
+
+        iframe.cctv {
+            border: 0px;
+            margin: 0;
+            padding: 0;
+            width: 360px;
+            height: 240px;
+        }
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.1.0/dist/MarkerCluster.css" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.1.0/dist/MarkerCluster.Default.css" crossorigin="" />
+
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.1.0/dist/leaflet.markercluster.js" crossorigin=""></script>
 
 
 
@@ -38,18 +50,18 @@
     <script type="text/javascript">
         function initMap() {
             var map = L.map('mymap').setView([22.991620, 120.185030], 12);
-            /*
-            map.locate({
-                setView: true,
-                maxZoom: 18
-            });
-			*/
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?', {
                 attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
             }).addTo(map);
 
-            return map;
+            // cluster
+            var markers = L.markerClusterGroup();
+            map.addLayer(markers);
+            // attach parent map
+            markers.parent_map = map;
+
+            return markers;
         }
 
         function addCircle(map, coordinates, params) {
@@ -80,15 +92,42 @@
             return map;
         }
 
+        function addCCTV(map, coordinates, params) {
+            var circle;
+            try { // 部份資料經緯度格式異常
+                circle = L.circle(coordinates, {
+                    color: params.color || 'red',
+                    radius: params.radius || '30'
+                }).addTo(map);
+            } catch (e) {
+                console.log(e);
+                return;
+            }
+
+            var payload = params.payload;
+
+            circle.bindPopup(
+                payload['RoadName'] + '(' + payload['SurveillanceDescription'] + ')' +
+                '<br><iframe class="cctv" src="' + payload['VideoStreamURL'] + '">' + '</iframe>' +
+                "", {
+                    maxWidth: "auto"
+                }
+            ).openPopup();
+
+            return map;
+        }
+
         $(document).ready(function() {
             var map = initMap();
 
             $(document).ajaxComplete(function() {
-                map.setView([22.991620, 120.185030], 12);
+                map.parent_map.setView([22.991620, 120.185030], 12);
             });
 
+            var cors_proxy = 'https://cors-anywhere.herokuapp.com/';
+
             // 臺南市公有免費停車場
-            $.getJSON('https://cors.io/?' + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=1&ftype=1&exportTo=2', function(data) {
+            $.getJSON(cors_proxy + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=1&ftype=1&exportTo=2', function(data) {
                 $.each(data, function(k, v) {
                     //console.log(v['經緯度']);
                     var coordinates = v['經緯度'].split('，').map(parseFloat);
@@ -100,7 +139,7 @@
             });
 
             // 臺南市公有收費停車場
-            $.getJSON('https://cors.io/?' + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=2&ftype=1&exportTo=2', function(data) {
+            $.getJSON(cors_proxy + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=2&ftype=1&exportTo=2', function(data) {
                 $.each(data, function(k, v) {
                     if (!v['經緯度']) {
                         console.log(v);
@@ -115,7 +154,7 @@
             });
 
             // 臺南市各行政區現有認養及代管空地設置停車場明細表
-            $.getJSON('https://cors.io/?' + 'https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=b1aece34-a907-40a9-8678-f17198786571&limit=500', function(data) {
+            $.getJSON(cors_proxy + 'https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=b1aece34-a907-40a9-8678-f17198786571&limit=500', function(data) {
                 $.each(data['result']['records'], function(k, v) {
                     if (!v['_id']) {
                         console.log(v);
@@ -130,7 +169,7 @@
             });
 
             // 高雄市公有路外停車場
-            $.getJSON('https://cors.io/?' + 'https://data.kcg.gov.tw/api/action/datastore_search?resource_id=fe3f93da-9673-4f7b-859c-9017d793f798&limit=500', function(data) {
+            $.getJSON(cors_proxy + 'https://data.kcg.gov.tw/api/action/datastore_search?resource_id=fe3f93da-9673-4f7b-859c-9017d793f798&limit=500', function(data) {
                 $.each(data['result']['records'], function(k, v) {
                     if (!v['_id']) {
                         console.log(v);
@@ -139,6 +178,18 @@
                     var coordinates = [v['座標-緯度'] || 0, v['座標-經度'] || 0];
                     addCircle(map, coordinates, {
                         color: 'purple',
+                        payload: v
+                    });
+                });
+            });
+
+            // CCTVs 中華民國交通部公路總局「交通資料庫」
+            // https://thbapp.thb.gov.tw/opendata/
+            $.getJSON(cors_proxy + 'http://117.56.59.157:8085/THB/Standard/CCTVs', function(data) {
+                $.each(data['CCTVs'], function(k, v) {
+                    var coordinates = [v['PositionLat'] || 0, v['PositionLon'] || 0];
+                    addCCTV(map, coordinates, {
+                        color: 'brown',
                         payload: v
                     });
                 });
