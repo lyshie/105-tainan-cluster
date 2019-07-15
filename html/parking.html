@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>台南市公有停車場</title>
+    <title>台南停車位置</title>
     <style>
         body {
             margin: 0;
@@ -37,11 +37,15 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.1.0/dist/MarkerCluster.css" crossorigin="" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.1.0/dist/MarkerCluster.Default.css" crossorigin="" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.1.0/dist/leaflet.markercluster.js" crossorigin=""></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
 
 
@@ -124,39 +128,51 @@
 
         $(document).ready(function() {
             var map = initMap();
+            var current = {
+                lat: 22.991620,
+                lng: 120.185030
+            };
 
             $(document).ajaxComplete(function() {
-                map.parent_map.setView([22.991620, 120.185030], 12);
+                map.parent_map.setView([current.lat, current.lng], 18);
             });
+
 
             var cors_proxy = 'https://cors-anywhere.herokuapp.com/';
 
-            // 臺南市公有免費停車場
-            $.getJSON(cors_proxy + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=1&ftype=1&exportTo=2', function(data) {
-                $.each(data, function(k, v) {
-                    //console.log(v['經緯度']);
-                    var coordinates = v['經緯度'].split('，').map(parseFloat);
-                    addCircle(map, coordinates, {
-                        color: 'blue',
-                        payload: v
-                    });
-                });
-            });
+            var tainan_json = [{
+                    title: '臺南市公有免費停車場',
+                    url: 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=1&ftype=1&exportTo=2',
+                    color: 'blue'
+                },
+                {
+                    title: '臺南市公有收費停車場',
+                    url: 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=2&ftype=1&exportTo=2',
+                    color: 'red'
+                },
+                {
+                    title: '臺南市民營停車場',
+                    url: 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=3&ftype=1&exportTo=2',
+                    color: 'gold'
+                }
+            ];
 
-            // 臺南市公有收費停車場
-            $.getJSON(cors_proxy + 'http://163.29.141.11/App/parking.ashx?verCode=5177E3481D&type=2&ftype=1&exportTo=2', function(data) {
-                $.each(data, function(k, v) {
-                    if (!v['經緯度']) {
-                        console.log(v);
-                        return;
-                    }
-                    var coordinates = v['經緯度'].split('，').map(parseFloat);
-                    addCircle(map, coordinates, {
-                        color: 'red',
-                        payload: v
+            for (var i = 0; i < tainan_json.length; i++) {
+                var parking = tainan_json[i];
+                $.getJSON(cors_proxy + parking.url, function(data) {
+                    $.each(data, function(k, v) {
+                        if (!v['經緯度']) {
+                            console.log(v);
+                            return;
+                        }
+                        var coordinates = v['經緯度'].split('，').map(parseFloat);
+                        addCircle(map, coordinates, {
+                            color: parking.color,
+                            payload: v
+                        });
                     });
                 });
-            });
+            }
 
             // 臺南市各行政區現有認養及代管空地設置停車場明細表
             $.getJSON(cors_proxy + 'https://data.tainan.gov.tw/api/3/action/datastore_search?resource_id=b1aece34-a907-40a9-8678-f17198786571&limit=500', function(data) {
@@ -206,13 +222,49 @@
                     });
                 });
             }
+
+            // 關鍵字查詢 GPS 座標
+            $('#search').click(function(e) {
+                e.preventDefault();
+
+                var keyword = $('#keyword').val();
+
+                $.getJSON({
+                    url: cors_proxy + 'http://api.opencube.tw/location/address',
+                    data: {
+                        keyword: keyword
+                    }
+                }, function(data) {
+                    if (data.status == 200) {
+                        current.lat = data.data.lat;
+                        current.lng = data.data.lng;
+                    }
+                });
+            });
         });
     </script>
 </head>
 
 <body>
-    <div id="map-container">
-        <div id="mymap"></div>
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-sm navbar-light bg-light">
+            <a class="navbar-brand" href="#">台南停車位置</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarLocation" aria-controls="navbarLocation" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarLocation">
+                <ul class="navbar-nav mr-auto">
+                </ul>
+                <form class="form-inline">
+                    <input id="keyword" class="form-control form-control-sm" type="search" placeholder="Search" aria-label="Search">
+                    <button id="search" class="btn btn-sm btn-outline-success" type="submit">Search</button>
+                </form>
+            </div>
+        </nav>
+        <div id="map-container">
+            <div id="mymap"></div>
+        </div>
     </div>
 </body>
 
