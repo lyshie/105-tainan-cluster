@@ -32,6 +32,13 @@
             width: 360px;
             height: 240px;
         }
+
+        img.interchange {
+            border: 0px;
+            margin: 0;
+            padding: 0;
+            width: 360px;
+        }
     </style>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
@@ -68,6 +75,7 @@
             return markers;
         }
 
+        // 停車場位置
         function addCircle(map, coordinates, params) {
             var circle;
             try { // 部份資料經緯度格式異常
@@ -96,6 +104,7 @@
             return map;
         }
 
+        // 監視錄影
         function addCCTV(map, coordinates, params) {
             var circle;
             try { // 部份資料經緯度格式異常
@@ -122,6 +131,34 @@
                     maxWidth: "auto"
                 }
             );
+
+            return map;
+        }
+
+        // 交流道示意圖
+        function addInterChange(map, coordinates, params) {
+            var circle;
+            try { // 部份資料經緯度格式異常
+                circle = L.circle(coordinates, {
+                    color: params.color || 'gray',
+                    radius: params.radius || '30'
+                }).addTo(map);
+            } catch (e) {
+                console.log(e);
+                return;
+            }
+
+            var payload = params.payload;
+
+            circle.bindPopup(
+                '<a href="http://maps.google.com/?cbll=' +
+                coordinates[0] + ',' + coordinates[1] + '&cbp=12,20.09,,0,5&layer=c" target="_blank">' +
+                (payload['Name'] || '') +
+                '</a>' +
+                '<br><a href="https://www.thb.gov.tw/resource/upload/Expressway/{HREF}" target="_blank"><img class="interchange" alt="{NAME}" src="https://www.thb.gov.tw/resource/upload/Expressway/{HREF}"></a>'.replace(/{NAME}/g, (payload['NAME'] || '')).replace(/{HREF}/g, (payload['Id'] || '') + (payload['Extension'] || '')) +
+                "", {
+                    maxWidth: "auto"
+                });
 
             return map;
         }
@@ -204,6 +241,7 @@
                 });
             });
 
+            // 即時監視錄影
             var cctv_json = [
                 'https://thbapp.thb.gov.tw/services/cctv/freeway', // 國道
                 'https://thbapp.thb.gov.tw/services/cctv/thb', // 省道
@@ -217,6 +255,40 @@
                         var coordinates = [v['gisy'] || 0, v['gisx'] || 0];
                         addCCTV(map, coordinates, {
                             color: 'green',
+                            payload: v
+                        });
+                    });
+                });
+            }
+
+            // 交流道位置
+            var interchange_json = [
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=04989470-e10f-4412-a331-edcaa7f46721', // 台61線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=01ed5b03-6f34-41ba-a921-7a829fa128ab', // 台61甲線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=ee4cb63f-24bf-4db3-b3f1-b75bd4d1e7b4', // 台62線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=4bf121b9-ff75-4c59-b647-da07eeda18bf', // 台62甲線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=5d84580e-5f18-42c1-90ca-0f0d7a35b2e4', // 台64線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=1cd11c4b-75db-4d8e-9ba1-7372c14d04d8', // 台65線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=62eb40ae-12f7-4f02-8bd6-cac4419fcfec', // 台66線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=614fce70-cd3c-49d8-b0ec-d638806d613a', // 台68線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=cddd2a0a-106a-4c9c-b89e-b3340632f4e6', // 台72線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=9df41e55-c662-44d6-b4f3-85c38811bc1e', // 台74線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=e6574396-9478-4a03-8790-d68536b47793', // 台76線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=ec8b7657-4c4c-407f-87a0-62ac61d2539a', // 台78線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=0163265c-a423-47cc-9ed8-e64a46159dd6', // 台82線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=93495b57-3e0d-4e51-a189-efc0d8b5514e', // 台84線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=6dc661df-139a-43f9-8b10-deb287ad6f4b', // 台86線
+                'https://www.thb.gov.tw/api/GetExpresswayInterchangeSet?expresswayId=20441384-4bdc-4c39-b89f-c38d5c127b8a' // 台88線
+
+            ];
+
+            // InterChangeSet
+            for (var i = 0; i < interchange_json.length; i++) {
+                $.getJSON(cors_proxy + interchange_json[i], function(data) {
+                    $.each(data, function(k, v) {
+                        var coordinates = [v['Lat'] || 0, v['Lon'] || 0];
+                        addInterChange(map, coordinates, {
+                            color: 'gray',
                             payload: v
                         });
                     });
@@ -246,8 +318,8 @@
 </head>
 
 <body>
-    <div class="container-fluid">
-        <nav class="navbar navbar-expand-sm navbar-light bg-light">
+    <nav class="navbar navbar-expand-sm navbar-light bg-light fixed-top">
+        <div class="container-fluid">
             <a class="navbar-brand" href="#">台南停車位置</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarLocation" aria-controls="navbarLocation" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -261,7 +333,8 @@
                     <button id="search" class="btn btn-sm btn-outline-success" type="submit">Search</button>
                 </form>
             </div>
-        </nav>
+    </nav>
+    <div class="container-fluid">
         <div id="map-container">
             <div id="mymap"></div>
         </div>
