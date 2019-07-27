@@ -163,6 +163,27 @@
             return map;
         }
 
+        // CWB
+        function addCWB(map, coordinates, params) {
+            var circle;
+            circle = L.circle(coordinates, {
+                color: params.color || 'yellow',
+                radius: params.radius || '1000',
+                opacity: parseFloat(params.payload.weatherElement[0]['time'][0]['elementValue'][0]['value']) / 100.0
+            }).addTo(map);
+
+            var payload = params.payload;
+
+            var cwb = '<table>';
+            $.each(payload.weatherElement[0]['time'], function(k, v) {
+                cwb = cwb + '<tr><td>' + v['elementValue'][0]['value'] + '%</td><td>' + v['startTime'] + '</td><td>' + v['endTime'] + '</td></tr>';
+            });
+            cwb += '</table>';
+            circle.bindPopup(cwb);
+
+            return map;
+        }
+
         $(document).ready(function() {
             var map = initMap();
             var current = {
@@ -294,6 +315,18 @@
                     });
                 });
             }
+
+            // CWB
+            $.getJSON('https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-089?Authorization=CWB-2D5AAEFD-6487-4CE9-8BCC-FF7D7864D3DB&format=JSON&elementName=PoP6h', function(data) {
+                $.each(data.records.locations[0].location, function(k, v) {
+                    var coordinates = [v['lat'] || 0, v['lon'] || 0];
+                    addCWB(map.parent_map, coordinates, {
+                        color: 'black',
+                        radius: 10000,
+                        payload: v
+                    });
+                });
+            });
 
             // 關鍵字查詢 GPS 座標
             $('#search').click(function(e) {
