@@ -98,7 +98,7 @@
                     }
 
                     a = new RegExp('市立' + name + '國小$', 'g');
-                    b = new RegExp('市立' + name + '國民小學$', 'g');
+                    b = new RegExp('市立' + name + '(?:國民|實驗|生態實驗)小學$', 'g');
                     c = new RegExp('私立' + name + '小學$', 'g');
                 }
             }
@@ -112,6 +112,7 @@
                 else if (s['NAME'].match(a) || s['NAME'].match(b) || s['NAME'].match(c)) {
                     // match and exit
                     result = i;
+                    console.log(result + ' o ');
                 }
             });
 
