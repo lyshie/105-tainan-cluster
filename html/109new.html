@@ -134,10 +134,6 @@
                 if (n['school'] == '') {
                     return;
                 }
-                // 使用學校名稱「縮寫」查詢學校代碼
-                if (n['school'] == '口埤') {
-                    n['school'] = '口碑';
-                }
 
                 var index = match_school(n['school']);
                 // 新生報到人數
