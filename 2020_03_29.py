@@ -8,8 +8,9 @@ def main():
     with open('2020_03_29.txt', 'r') as f:
         lines = f.readlines()
         for i in range(0, int(len(lines) / 9)):
-            school = lines[i * 9 + 1].strip()
-            if school == '合計':
+            district = lines[i * 9].strip()
+            school   = lines[i * 9 + 1].strip()
+            if district == '合計' or school == '合計':
                 school = '總計'  # 名稱一致
             num = lines[i * 9 + 2].strip()
             result[school] = num
