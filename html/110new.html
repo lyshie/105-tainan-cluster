@@ -155,10 +155,10 @@
 
                 var html = '<tr>';
 
-                if (c1 == c2) {
+                if (g1 == c2) {
                     colors[n['school']] = "#999999";
                 }
-                else if (c1 < c2) {
+                else if (g1 < c2) {
                     colors[n['school']] = "#ff0000";
                 }
                 else {
@@ -170,7 +170,7 @@
                     '<td>' + c1 + '</td>' +
                     '<td style="color:' + colors[n['school']] + ';">' + g1 + '</td>' +
                     '<td style="color:' + colors[n['school']] + ';">' + c2 + '</td>' +
-                    '<td style="color:' + colors[n['school']] + ';">' + (c2 - c1) + '</td>' +
+                    '<td style="color:' + colors[n['school']] + ';">' + (c2 - g1) + '</td>' +
                     '<td style="color:' + colors[n['school']] + ';">' + Math.round(100 * (c2 - c1) / c1) + '</td>';
 
                 html = html + '</tr>';
