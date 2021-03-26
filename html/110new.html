@@ -145,6 +145,8 @@
                 // begin of table
                 var c1 = parseInt(n1[n['school']] ? n1[n['school']] : '0');
                 var c2 = parseInt(n2[n['school']] ? n2[n['school']] : '0');
+                var g1 = (grade1[n['school']] ? grade1[n['school']] : '0');
+
                 var html = '<tr>';
 
                 if (c1 == c2) {
@@ -160,7 +162,7 @@
                 html = html +
                     '<td>' + n['school'] + '</td>' +
                     '<td>' + c1 + '</td>' +
-                    '<td style="color:' + colors[n['school']] + ';">' + grade1[n['school']] + '</td>' +
+                    '<td style="color:' + colors[n['school']] + ';">' + g1 + '</td>' +
                     '<td style="color:' + colors[n['school']] + ';">' + c2 + '</td>' +
                     '<td style="color:' + colors[n['school']] + ';">' + (c2 - c1) + '</td>' +
                     '<td style="color:' + colors[n['school']] + ';">' + Math.round(100 * (c2 - c1) / c1) + '</td>';
