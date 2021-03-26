@@ -221,7 +221,9 @@
                 }
             });
 
-            table.search(get_filter()).draw();
+            var filter = get_filter();
+
+            table.search( (filter ? filter : '') ).draw();
         }
     });
     </script>
