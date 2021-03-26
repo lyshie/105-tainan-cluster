@@ -120,6 +120,12 @@
             return result;
         }
 
+        function get_filter() {
+            var url = window.location.search;
+            var params = new URLSearchParams(url);
+            return params.get('filter');
+        }
+
         // 重新繪製地圖
         function refresh_pop() {
             var map = new google.maps.Map(document.getElementById('map'), {
@@ -207,13 +213,15 @@
             });
 
             // data table for sorting
-            $('#rawdata').DataTable({
+            var table = $('#rawdata').DataTable({
                 "paging": false,
                 "info": false,
                 "language": {
                     search: '在表格中搜尋：'
                 }
             });
+
+            table.search(get_filter()).draw();
         }
     });
     </script>
