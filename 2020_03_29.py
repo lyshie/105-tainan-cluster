@@ -13,7 +13,7 @@ def main():
             if district == '合計' or school == '合計':
                 school = '總計'  # 名稱一致
             num = lines[i * 9 + 2].strip()
-            result[school] = num
+            result[school] = {'num': num, 'dist': district}
 
     print('var grade1 = ', json.dumps(result), ';')
 

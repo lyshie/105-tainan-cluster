@@ -151,7 +151,8 @@
                 // begin of table
                 var c1 = parseInt(n1[n['school']] ? n1[n['school']] : '0');
                 var c2 = parseInt(n2[n['school']] ? n2[n['school']] : '0');
-                var g1 = (grade1[n['school']] ? grade1[n['school']] : '0');
+                var g1   = (grade1[n['school']] && grade1[n['school']].num  ? grade1[n['school']].num  : '0');
+                var dist = (grade1[n['school']] && grade1[n['school']].dist ? grade1[n['school']].dist : '');
 
                 var html = '<tr>';
 
@@ -166,8 +167,9 @@
                 }
 
                 html = html +
+                    '<td>' + dist        + '</td>' +
                     '<td>' + n['school'] + '</td>' +
-                    '<td>' + c1 + '</td>' +
+                    '<td>' + c1          + '</td>' +
                     '<td style="color:' + colors[n['school']] + ';">' + g1 + '</td>' +
                     '<td style="color:' + colors[n['school']] + ';">' + c2 + '</td>' +
                     '<td style="color:' + colors[n['school']] + ';">' + (c2 - g1) + '</td>' +
@@ -238,6 +240,7 @@
         <table id="rawdata" class="display-2 table table-hover table-striped table-bordered" style="font-size:1.2em;">
             <thead>
                 <tr>
+                    <th>行政區</th>
                     <th>學校</th>
                     <th>105報到人數</th>
                     <th>2021<br>一年級人數</th>
