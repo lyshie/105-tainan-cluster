@@ -317,7 +317,7 @@
             }
 
             // CWB
-            $.getJSON('https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-089?Authorization=CWB-2D5AAEFD-6487-4CE9-8BCC-FF7D7864D3DB&format=JSON&elementName=PoP6h', function(data) {
+            $.getJSON('https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-089?Authorization=CWB-F6C79B03-FE68-4FFD-B11C-D2BD3ED69532&format=JSON&elementName=PoP6h', function(data) {
                 $.each(data.records.locations[0].location, function(k, v) {
                     var coordinates = [v['lat'] || 0, v['lon'] || 0];
                     addCWB(map.parent_map, coordinates, {
