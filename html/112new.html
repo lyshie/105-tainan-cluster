@@ -1,0 +1,259 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>台南市112學年度國小新生報到人數</title>
+    <style >
+      body {
+        margin: 0;
+        padding: 10px 20px 20px;
+        font-family: Arial;
+        font-size: 16px;
+      }
+      #map-container {
+        padding: 6px;
+        border-width: 1px;
+        border-style: solid;
+        border-color: #ccc #ccc #999 #ccc;
+        -webkit-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+        -moz-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+        box-shadow: rgba(64, 64, 64, 0.1) 0 2px 5px;
+        width: 800px;
+      }
+      #map {
+        width: 800px;
+        height: 600px;
+      }
+    </style>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtFesU3YGjDzI6lWTW2LIP1n1MeVTFLsM"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-marker-clusterer/1.0.0/markerclusterer.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css" rel="stylesheet">
+
+    <!-- 台南市政府開放資料 - 國小新生報到人數 -->
+    <!-- http://data.tainan.gov.tw/dataset/ele-new-students -->
+    <script type="text/javascript" src="https://www.chps.tn.edu.tw/111new.json"></script>
+    <script type="text/javascript" src="../105new.json"></script>
+    <!-- 台南市政府開放資料 - 學校座標資料 -->
+    <!-- http://data.tainan.gov.tw/dataset/school-codes -->
+    <script type="text/javascript" src="../schools.json"></script>
+    <script type="text/javascript" src="../2023_03_08.json"></script>
+
+    <script type="text/javascript">
+    $( document ).ready(function() {
+        var n1 = []; // 105
+        var n2 = []; // 111
+        var colors = [];
+
+        $.each(newbie, function(i, n) { // 105
+            n1[n['school']] = n['num2'];
+        });
+
+        refresh_pop();
+
+        function match_school(name) { // too dirty, not elegant
+            var a;
+            var b;
+            var c;
+
+            if (name.indexOf('分校') > 0) {
+                a = b = c = new RegExp(name, 'g');
+            }
+            else {
+                if (name == '南大附小') {
+                    name = '國立臺南大學附小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '南科實小') {
+                    name = '國立南科國際實驗小學';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '慈濟') {
+                    name = '慈濟學校財團法人台南市私立慈濟高級中學附設國民小學部';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '大同' || name == '復興' || name == '勝利') {
+                    name = '市立東區' + name + '國小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '新興') {
+                    name = '市立南區新興國小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '成功') {
+                    name = '市立中西區成功國小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else if (name == '南興') {
+                    name = '市立安南區南興國小';
+                    a = b = c = new RegExp(name, 'g');
+                }
+                else {
+                    if (name.length == 4) {
+                        name = name.substring(0, 2) + '區' + name.substring(2);
+                    }
+
+                    a = new RegExp('市立' + name + '國小$', 'g');
+                    b = new RegExp('市立' + name + '(?:國民|實驗|生態實驗)小學$', 'g');
+                    c = new RegExp('私立' + name + '小學$', 'g');
+                }
+            }
+
+            var result = null;
+
+            $.each(schools, function(i, s) {
+                if (!s['LAT'] || !s['LNG']) {
+                    // skip
+                }
+                else if (s['NAME'].match(a) || s['NAME'].match(b) || s['NAME'].match(c)) {
+                    // match and exit
+                    result = i;
+                    console.log(result + ' o ');
+                }
+            });
+
+            return result;
+        }
+
+        function get_filter() {
+            var url = window.location.search;
+            var params = new URLSearchParams(url);
+            return params.get('filter');
+        }
+
+        // 重新繪製地圖
+        function refresh_pop() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 10,
+                center: new google.maps.LatLng(22.984995, 120.200965),
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+                //mapTypeId: google.maps.MapTypeId.TERRAIN
+            });
+
+            $("table#rawdata tbody").empty();
+            $("table#rawdata tfoot").empty();
+            $.each(newbie2, function(i, n) {
+                if (n['school'] == '') {
+                    return;
+                }
+
+                var index = match_school(n['school']);
+                // 新生報到人數
+                var population = parseInt(n['num2']);
+
+                n2[n['school']] = n['num2'];
+
+                // begin of table
+                var c1 = parseInt(n1[n['school']] ? n1[n['school']] : '0');
+                var c2 = parseInt(n2[n['school']] ? n2[n['school']] : '0');
+                var g1   = (grade1[n['school']] && grade1[n['school']].num  ? grade1[n['school']].num  : '0');
+                var dist = (grade1[n['school']] && grade1[n['school']].dist ? grade1[n['school']].dist : '');
+
+                var html = '<tr>';
+
+                if (g1 == c2) {
+                    colors[n['school']] = "#999999";
+                }
+                else if (g1 < c2) {
+                    colors[n['school']] = "#ff0000";
+                }
+                else {
+                    colors[n['school']] = "#009900";
+                }
+
+                html = html +
+                    '<td>' + dist        + '</td>' +
+                    '<td>' + n['school'] + '</td>' +
+                    '<td>' + c1          + '</td>' +
+                    '<td style="color:' + colors[n['school']] + ';">' + g1 + '</td>' +
+                    '<td style="color:' + colors[n['school']] + ';">' + c2 + '</td>' +
+                    '<td style="color:' + colors[n['school']] + ';">' + (c2 - g1) + '</td>' +
+                    '<td style="color:' + colors[n['school']] + ';">' + ( g1 == 0 ? 0 : Math.round(100 * (c2 - g1) / g1) ) + '</td>';
+
+                html = html + '</tr>';
+
+                if (n['school'] == '總計') {
+                    $("table#rawdata tfoot").append(html);
+                }
+                else {
+                    $("table#rawdata tbody").append(html);
+                }
+                // end of table
+
+                // 有查到學校代碼
+                if (index != null) {
+                    var circle = new google.maps.Circle({
+                        strokeColor: colors[n['school']],
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: colors[n['school']],
+                        fillOpacity: 0.35,
+                        map: map,
+                        center: { lat: parseFloat(schools[index]['LAT']),
+                                  lng: parseFloat(schools[index]['LNG'])
+                                },
+                        radius: Math.sqrt(population) * 50,
+                        title: schools[index]['NAME'] + ' ' + population
+                    });
+
+                    google.maps.event.addListener(circle, 'mouseover', function() {
+                         this.getMap().getDiv().setAttribute('title',this.get('title'));
+                    });
+
+                    google.maps.event.addListener(circle, 'mouseout', function() {
+                         this.getMap().getDiv().removeAttribute('title');
+                    });
+                }
+                else { // 找不到學校
+                    console.log(n['school'] + ' X ');
+                }
+            });
+
+            // data table for sorting
+            var table = $('#rawdata').DataTable({
+                "paging": false,
+                "info": false,
+                "language": {
+                    search: '在表格中搜尋：'
+                }
+            });
+
+            var filter = get_filter();
+
+            table.search( (filter ? filter : '') ).draw();
+        }
+    });
+    </script>
+  </head>
+
+  <body>
+    <div class="container">
+        <h3>台南市112學年度國小新生報到人數</h3>
+        <h4>參考來源：<a href="http://data.tainan.gov.tw/dataset/ele-new-students">國小新生報到人數 - 資料集 - 臺南市政府資料開放平台</a></h4>
+        <h4>參考來源：<a href="https://std.tn.edu.tw/sis/AnonyQuery/StatSchClsStdSum.aspx">臺南市國民小學各校年級人數統計</a></h4>
+        <div id="map-container"><div id="map"></div></div>
+        <table id="rawdata" class="display-2 table table-hover table-striped table-bordered" style="font-size:1.2em;">
+            <thead>
+                <tr>
+                    <th>行政區</th>
+                    <th>學校</th>
+                    <th>105報到人數</th>
+                    <th>2023-03-08<br>一年級人數</th>
+                    <th>111報到人數</th>
+                    <th>人數差異</th>
+                    <th>成長幅度</th>
+                </tr>
+            </thead>
+            <tbody class="text-right">
+            </tbody>
+            <tfoot class="text-right">
+            </tbody>
+        </table>
+    </div>
+  </body>
+</html>
