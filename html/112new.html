@@ -27,7 +27,7 @@
     </style>
 
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtFesU3YGjDzI6lWTW2LIP1n1MeVTFLsM&callback=initMap" async></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtFesU3YGjDzI6lWTW2LIP1n1MeVTFLsM" async></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-marker-clusterer/1.0.0/markerclusterer.js"></script>
 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -43,8 +43,44 @@
     <!-- http://data.tainan.gov.tw/dataset/school-codes -->
     <script type="text/javascript" src="../schools.json"></script>
     <script type="text/javascript" src="../2023_03_08.json"></script>
+  </head>
 
+  <body>
+    <div class="container">
+        <h3>台南市112學年度國小新生報到人數</h3>
+        <h4>參考來源：<a href="http://data.tainan.gov.tw/dataset/ele-new-students">國小新生報到人數 - 資料集 - 臺南市政府資料開放平台</a></h4>
+        <h4>參考來源：<a href="https://std.tn.edu.tw/sis/AnonyQuery/StatSchClsStdSum.aspx">臺南市國民小學各校年級人數統計</a></h4>
+        <div id="map-container"><div id="map"></div></div>
+        <table id="rawdata" class="display-2 table table-hover table-striped table-bordered" style="font-size:1.2em;">
+            <thead>
+                <tr>
+                    <th>行政區</th>
+                    <th>學校</th>
+                    <th>105報到人數</th>
+                    <th>2023-03-08<br>一年級人數</th>
+                    <th>112報到人數</th>
+                    <th>人數差異</th>
+                    <th>成長幅度</th>
+                </tr>
+            </thead>
+            <tbody class="text-right">
+            </tbody>
+            <tfoot class="text-right">
+            </tbody>
+        </table>
+    </div>
     <script type="text/javascript">
+    var map;
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 10,
+            center: new google.maps.LatLng(22.984995, 120.200965),
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+            //mapTypeId: google.maps.MapTypeId.TERRAIN
+        });
+    }
+    initMap();
+
     $( document ).ready(function() {
         var n1 = []; // 105
         var n2 = []; // 112
@@ -53,17 +89,6 @@
         $.each(newbie, function(i, n) { // 105
             n1[n['school']] = n['num2'];
         });
-
-        var map;
-        function initMap() {
-            var map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 10,
-                center: new google.maps.LatLng(22.984995, 120.200965),
-                mapTypeId: google.maps.MapTypeId.ROADMAP
-                //mapTypeId: google.maps.MapTypeId.TERRAIN
-            });
-        }
-        initMap();
 
         refresh_pop();
 
@@ -233,31 +258,5 @@
         }
     });
     </script>
-  </head>
-
-  <body>
-    <div class="container">
-        <h3>台南市112學年度國小新生報到人數</h3>
-        <h4>參考來源：<a href="http://data.tainan.gov.tw/dataset/ele-new-students">國小新生報到人數 - 資料集 - 臺南市政府資料開放平台</a></h4>
-        <h4>參考來源：<a href="https://std.tn.edu.tw/sis/AnonyQuery/StatSchClsStdSum.aspx">臺南市國民小學各校年級人數統計</a></h4>
-        <div id="map-container"><div id="map"></div></div>
-        <table id="rawdata" class="display-2 table table-hover table-striped table-bordered" style="font-size:1.2em;">
-            <thead>
-                <tr>
-                    <th>行政區</th>
-                    <th>學校</th>
-                    <th>105報到人數</th>
-                    <th>2023-03-08<br>一年級人數</th>
-                    <th>112報到人數</th>
-                    <th>人數差異</th>
-                    <th>成長幅度</th>
-                </tr>
-            </thead>
-            <tbody class="text-right">
-            </tbody>
-            <tfoot class="text-right">
-            </tbody>
-        </table>
-    </div>
   </body>
 </html>
