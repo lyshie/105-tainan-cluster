@@ -81,6 +81,8 @@
                 mapTypeId: google.maps.MapTypeId.ROADMAP
                 //mapTypeId: google.maps.MapTypeId.TERRAIN
             });
+
+			refresh_pop();
         }
         document.head.appendChild(script);
 
@@ -91,8 +93,6 @@
         $.each(newbie, function(i, n) { // 105
             n1[n['school']] = n['num2'];
         });
-
-        refresh_pop();
 
         function match_school(name) { // too dirty, not elegant
             var a;
