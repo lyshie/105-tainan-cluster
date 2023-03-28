@@ -27,7 +27,7 @@
     </style>
 
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtFesU3YGjDzI6lWTW2LIP1n1MeVTFLsM&callback=refresh_pop" async></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtFesU3YGjDzI6lWTW2LIP1n1MeVTFLsM&callback=initMap" async></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/js-marker-clusterer/1.0.0/markerclusterer.js"></script>
 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -53,6 +53,17 @@
         $.each(newbie, function(i, n) { // 105
             n1[n['school']] = n['num2'];
         });
+
+        var map;
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 10,
+                center: new google.maps.LatLng(22.984995, 120.200965),
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+                //mapTypeId: google.maps.MapTypeId.TERRAIN
+            });
+        }
+        initMap();
 
         refresh_pop();
 
@@ -128,13 +139,6 @@
 
         // 重新繪製地圖
         function refresh_pop() {
-            var map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 10,
-                center: new google.maps.LatLng(22.984995, 120.200965),
-                mapTypeId: google.maps.MapTypeId.ROADMAP
-                //mapTypeId: google.maps.MapTypeId.TERRAIN
-            });
-
             $("table#rawdata tbody").empty();
             $("table#rawdata tfoot").empty();
             $.each(newbie2, function(i, n) {
